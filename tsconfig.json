@@ -20,5 +20,8 @@
   },
   "include": [
     "**/*.ts"
+  ],
+  "exclude": [
+    "old_main.ts"
   ]
 }
