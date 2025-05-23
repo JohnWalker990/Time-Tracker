@@ -22,7 +22,8 @@ export default class TimeTrackingPlugin extends Plugin {
   data: {
     instances: { [trackerId: string]: import('./models/TimeEntry').TimeEntry[] };
     sortSettings: { [trackerId: string]: 'start' | 'project' | null };
-  } = { instances: {}, sortSettings: {} };
+    trackerDates: { [trackerId: string]: string };
+  } = { instances: {}, sortSettings: {}, trackerDates: {} };
 
   settings: TimeTrackingPluginSettings = DEFAULT_SETTINGS;
   private processedFiles: Set<string> = new Set();
@@ -122,6 +123,7 @@ export default class TimeTrackingPlugin extends Plugin {
     const toSave: PluginStorage = {
       instances: this.data.instances,
       sortSettings: this.data.sortSettings,
+      trackerDates: this.data.trackerDates,
       settings: this.settings,
     };
     await this.saveData(toSave);
@@ -160,6 +162,7 @@ export default class TimeTrackingPlugin extends Plugin {
     if (stored) {
       this.data.instances = stored.instances || {};
       this.data.sortSettings = stored.sortSettings || {};
+      this.data.trackerDates = stored.trackerDates || {};
       this.settings = stored.settings || DEFAULT_SETTINGS;
       if (!this.settings.projects) this.settings.projects = [];
       if (this.settings.migratedProjects === undefined) this.settings.migratedProjects = false;
@@ -173,6 +176,7 @@ export default class TimeTrackingPlugin extends Plugin {
     } else {
       this.data.instances = {};
       this.data.sortSettings = {};
+      this.data.trackerDates = {};
       this.settings = { ...DEFAULT_SETTINGS };
     }
   }
