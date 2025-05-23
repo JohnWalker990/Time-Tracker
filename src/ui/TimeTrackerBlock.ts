@@ -28,6 +28,11 @@ export class TimeTrackerBlock extends MarkdownRenderChild {
     if (!this.plugin.data.sortSettings[this.trackerId]) {
       this.plugin.data.sortSettings[this.trackerId] = null;
     }
+    if (!this.plugin.data.trackerDates[this.trackerId]) {
+      const first = this.plugin.data.instances[this.trackerId][0];
+      this.plugin.data.trackerDates[this.trackerId] =
+        first?.date || new Date().toISOString().slice(0, 10);
+    }
 
     const sortWrapper = this.container.createDiv({ cls: 'time-tracker-sort-wrapper' });
     sortWrapper.createSpan({ text: 'Sortieren nach: ' });
@@ -47,9 +52,21 @@ export class TimeTrackerBlock extends MarkdownRenderChild {
       this.updateAllSums();
     };
 
+    const dateWrapper = this.container.createDiv({ cls: 'time-tracker-date-wrapper' });
+    dateWrapper.createSpan({ text: 'Datum: ' });
+    const headerDateInput = dateWrapper.createEl('input');
+    headerDateInput.type = 'date';
+    headerDateInput.value = this.plugin.data.trackerDates[this.trackerId];
+    headerDateInput.onchange = () => {
+      const val = headerDateInput.value;
+      this.plugin.data.trackerDates[this.trackerId] = val;
+      this.plugin.data.instances[this.trackerId].forEach(e => (e.date = val));
+      this.plugin.savePluginData();
+    };
+
     this.tableEl = this.container.createEl('table', { cls: 'time-tracker-table' });
     const headerRow = this.tableEl.createEl('tr');
-    ['Datum', 'Startzeit', 'Endzeit', 'Stunden', 'Projekt', 'Tätigkeit', 'Aktion'].forEach(h =>
+    ['Startzeit', 'Endzeit', 'Stunden', 'Projekt', 'Tätigkeit', 'Aktion'].forEach(h =>
       headerRow.createEl('th', { text: h })
     );
 
@@ -57,7 +74,7 @@ export class TimeTrackerBlock extends MarkdownRenderChild {
     this.renderTableRows();
 
     this.sumRow = this.tableEl.createEl('tr', { cls: 'sum-row' });
-    const sumLabelCell = this.sumRow.createEl('td', { attr: { colspan: '3' } });
+    const sumLabelCell = this.sumRow.createEl('td', { attr: { colspan: '2' } });
     sumLabelCell.setText('Gesamt-Summe');
     const sumHoursCell = this.sumRow.createEl('td', { cls: 'sum-hours' });
     sumHoursCell.setText(this.calculateSumAll());
@@ -74,7 +91,8 @@ export class TimeTrackerBlock extends MarkdownRenderChild {
 
     const addButton = this.container.createEl('button', { text: 'Zeile hinzufügen' });
     addButton.onclick = () => {
-      this.plugin.data.instances[this.trackerId].push({ date: new Date().toISOString().slice(0, 10), start: '', end: '', project: '', activity: '' });
+      const d = this.plugin.data.trackerDates[this.trackerId];
+      this.plugin.data.instances[this.trackerId].push({ date: d, start: '', end: '', project: '', activity: '' });
       this.plugin.savePluginData();
       this.renderTableRows();
       this.updateAllSums();
@@ -99,15 +117,6 @@ export class TimeTrackerBlock extends MarkdownRenderChild {
 
   private createRow(entry: TimeEntry): void {
     const row = this.tbody.insertRow(-1);
-
-    const dateCell = row.insertCell(-1);
-    const dateInput = dateCell.createEl('input');
-    dateInput.type = 'date';
-    dateInput.value = entry.date;
-    dateInput.addEventListener('change', () => {
-      entry.date = dateInput.value;
-      this.plugin.savePluginData();
-    });
 
     const startCell = row.insertCell(-1);
     const startInput = startCell.createEl('input');
@@ -181,7 +190,7 @@ export class TimeTrackerBlock extends MarkdownRenderChild {
   }
 
   private updateRow(row: HTMLTableRowElement, entry: TimeEntry): void {
-    const hoursCell = row.cells[3];
+    const hoursCell = row.cells[2];
     hoursCell.textContent = this.calculateTime(entry.start, entry.end);
   }
 
