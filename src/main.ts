@@ -11,6 +11,9 @@ import {
 import {
   generateNewId,
   extractTrackerId,
+  calculateDiffInMinutes,
+  formatMinutesAsHM,
+  isDateInRange,
 } from './utils/time';
 import { PluginStorage } from './store';
 import { TimeTrackingSettingTab } from './settingsTab';
@@ -123,12 +126,47 @@ export default class TimeTrackingPlugin extends Plugin {
     await this.saveData(toSave);
   }
 
+  getAllEntries() {
+    const all: import('./models/TimeEntry').TimeEntry[] = [];
+    Object.values(this.data.instances).forEach(arr => all.push(...arr));
+    return all;
+  }
+
+  filterEntries(start: string, end: string, project?: string) {
+    return this.getAllEntries().filter(e =>
+      isDateInRange(e.date, start, end) && (!project || e.project === project)
+    );
+  }
+
+  generateCsv(start: string, end: string, project?: string): string {
+    const entries = this.filterEntries(start, end, project);
+    const lines = ['date,start,end,project,activity,hours'];
+    for (const e of entries) {
+      const minutes = calculateDiffInMinutes(
+        e.start,
+        e.end,
+        this.settings.roundTimesToQuarterHour
+      );
+      lines.push(
+        `${e.date},${e.start},${e.end},${e.project},${e.activity},${formatMinutesAsHM(minutes)}`
+      );
+    }
+    return lines.join('\n');
+  }
+
   async loadSettings() {
     const stored = (await this.loadData()) as PluginStorage;
     if (stored) {
       this.data.instances = stored.instances || {};
       this.data.sortSettings = stored.sortSettings || {};
       this.settings = stored.settings || DEFAULT_SETTINGS;
+      Object.values(this.data.instances).forEach(entries => {
+        entries.forEach(e => {
+          if (!(e as any).date) {
+            (e as any).date = new Date().toISOString().slice(0, 10);
+          }
+        });
+      });
     } else {
       this.data.instances = {};
       this.data.sortSettings = {};
