@@ -9,7 +9,8 @@ This **Time Tracker Plugin** for Obsidian lets you track time entries directly w
 
 - **Multiple Tracker Blocks**: Add as many ` ```time-tracker``` ` blocks to a single note as you want. Each block has its own data set.  
 - **Configurable 15-Minute Rounding**: Optionally round all calculated times (start/end difference) to the nearest quarter hour.  
-- **Project Summaries**: If multiple projects are logged in a single block, the plugin shows a per-project sum.  
+- **Project Summaries**: If multiple projects are logged in a single block, the plugin shows a per-project sum.
+- **Task Summaries**: Times for entries sharing the same task name are aggregated so you can see per-task totals within each block.
 - **Sorting & Filtering**: Sort entries by start time or by project name.  
 - **Seamless Tab Navigation**: Use the `Tab` key to move through input fields in a logical order.
 
