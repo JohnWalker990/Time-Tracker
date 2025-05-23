@@ -35,3 +35,11 @@ export function calculateDiffInMinutes(start: string, end: string, round?: boole
   }
   return diff;
 }
+
+export function isDateInRange(date: string, start: string, end: string): boolean {
+  if (!date) return false;
+  const d = new Date(date);
+  const s = new Date(start);
+  const e = new Date(end);
+  return d >= s && d <= e;
+}

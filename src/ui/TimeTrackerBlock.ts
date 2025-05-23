@@ -49,7 +49,7 @@ export class TimeTrackerBlock extends MarkdownRenderChild {
 
     this.tableEl = this.container.createEl('table', { cls: 'time-tracker-table' });
     const headerRow = this.tableEl.createEl('tr');
-    ['Startzeit', 'Endzeit', 'Stunden', 'Projekt', 'Tätigkeit', 'Aktion'].forEach(h =>
+    ['Datum', 'Startzeit', 'Endzeit', 'Stunden', 'Projekt', 'Tätigkeit', 'Aktion'].forEach(h =>
       headerRow.createEl('th', { text: h })
     );
 
@@ -57,7 +57,7 @@ export class TimeTrackerBlock extends MarkdownRenderChild {
     this.renderTableRows();
 
     this.sumRow = this.tableEl.createEl('tr', { cls: 'sum-row' });
-    const sumLabelCell = this.sumRow.createEl('td', { attr: { colspan: '2' } });
+    const sumLabelCell = this.sumRow.createEl('td', { attr: { colspan: '3' } });
     sumLabelCell.setText('Gesamt-Summe');
     const sumHoursCell = this.sumRow.createEl('td', { cls: 'sum-hours' });
     sumHoursCell.setText(this.calculateSumAll());
@@ -74,7 +74,7 @@ export class TimeTrackerBlock extends MarkdownRenderChild {
 
     const addButton = this.container.createEl('button', { text: 'Zeile hinzufügen' });
     addButton.onclick = () => {
-      this.plugin.data.instances[this.trackerId].push({ start: '', end: '', project: '', activity: '' });
+      this.plugin.data.instances[this.trackerId].push({ date: new Date().toISOString().slice(0, 10), start: '', end: '', project: '', activity: '' });
       this.plugin.savePluginData();
       this.renderTableRows();
       this.updateAllSums();
@@ -99,6 +99,15 @@ export class TimeTrackerBlock extends MarkdownRenderChild {
 
   private createRow(entry: TimeEntry): void {
     const row = this.tbody.insertRow(-1);
+
+    const dateCell = row.insertCell(-1);
+    const dateInput = dateCell.createEl('input');
+    dateInput.type = 'date';
+    dateInput.value = entry.date;
+    dateInput.addEventListener('change', () => {
+      entry.date = dateInput.value;
+      this.plugin.savePluginData();
+    });
 
     const startCell = row.insertCell(-1);
     const startInput = startCell.createEl('input');
@@ -167,7 +176,7 @@ export class TimeTrackerBlock extends MarkdownRenderChild {
   }
 
   private updateRow(row: HTMLTableRowElement, entry: TimeEntry): void {
-    const hoursCell = row.cells[2];
+    const hoursCell = row.cells[3];
     hoursCell.textContent = this.calculateTime(entry.start, entry.end);
   }
 
