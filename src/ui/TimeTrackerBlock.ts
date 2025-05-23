@@ -162,10 +162,12 @@ export class TimeTrackerBlock extends MarkdownRenderChild {
     activityInput.addEventListener('change', () => {
       entry.activity = activityInput.value;
       this.plugin.savePluginData();
+      this.updateAllSums();
     });
 
     const actionCell = row.insertCell(-1);
-    const deleteButton = actionCell.createEl('button', { text: 'Löschen' });
+    const deleteButton = actionCell.createEl('button', { text: '✕' });
+    deleteButton.style.color = 'red';
     deleteButton.onclick = () => {
       const arr = this.plugin.data.instances[this.trackerId];
       const idx = arr.indexOf(entry);
@@ -214,10 +216,17 @@ export class TimeTrackerBlock extends MarkdownRenderChild {
 
     if (projectMap.size > 1) {
       this.projectSummaryContainer.createEl('h4', { text: 'Projekt-Summen:' });
+      const table = this.projectSummaryContainer.createEl('table', {
+        cls: 'time-tracker-project-sum-table',
+      });
+      const headerRow = table.createEl('tr');
+      headerRow.createEl('th', { text: 'Projekt' });
+      headerRow.createEl('th', { text: 'Stunden' });
+
       projectMap.forEach((minutes, projectName) => {
-        const row = this.projectSummaryContainer.createDiv({ cls: 'time-tracker-project-sum-row' });
-        row.createSpan({ text: `Projekt: ${projectName} = ` });
-        row.createSpan({ text: formatMinutesAsHM(minutes) });
+        const row = table.createEl('tr');
+        row.createEl('td', { text: projectName });
+        row.createEl('td', { text: formatMinutesAsHM(minutes) });
       });
     }
   }
@@ -239,10 +248,17 @@ export class TimeTrackerBlock extends MarkdownRenderChild {
 
     if (activityMap.size > 1) {
       this.activitySummaryContainer.createEl('h4', { text: 'Aufgaben-Summen:' });
+      const table = this.activitySummaryContainer.createEl('table', {
+        cls: 'time-tracker-activity-sum-table',
+      });
+      const headerRow = table.createEl('tr');
+      headerRow.createEl('th', { text: 'Tätigkeit' });
+      headerRow.createEl('th', { text: 'Stunden' });
+
       activityMap.forEach((minutes, activityName) => {
-        const row = this.activitySummaryContainer.createDiv({ cls: 'time-tracker-activity-sum-row' });
-        row.createSpan({ text: `Aufgabe: ${activityName} = ` });
-        row.createSpan({ text: formatMinutesAsHM(minutes) });
+        const row = table.createEl('tr');
+        row.createEl('td', { text: activityName });
+        row.createEl('td', { text: formatMinutesAsHM(minutes) });
       });
     }
   }
