@@ -29,6 +29,7 @@ export default class TimeTrackingPlugin extends Plugin {
 
   async onload() {
     await this.loadSettings();
+    this.migrateProjectsFromEntries();
 
     this.registerEvent(
       this.app.vault.on('modify', changedFile => {
@@ -160,6 +161,8 @@ export default class TimeTrackingPlugin extends Plugin {
       this.data.instances = stored.instances || {};
       this.data.sortSettings = stored.sortSettings || {};
       this.settings = stored.settings || DEFAULT_SETTINGS;
+      if (!this.settings.projects) this.settings.projects = [];
+      if (this.settings.migratedProjects === undefined) this.settings.migratedProjects = false;
       Object.values(this.data.instances).forEach(entries => {
         entries.forEach(e => {
           if (!(e as any).date) {
@@ -170,12 +173,26 @@ export default class TimeTrackingPlugin extends Plugin {
     } else {
       this.data.instances = {};
       this.data.sortSettings = {};
-      this.settings = DEFAULT_SETTINGS;
+      this.settings = { ...DEFAULT_SETTINGS };
     }
   }
 
   async saveSettings() {
     await this.savePluginData();
+  }
+
+  private migrateProjectsFromEntries(): void {
+    if (this.settings.migratedProjects) return;
+    const set = new Set(this.settings.projects);
+    Object.values(this.data.instances).forEach(entries => {
+      entries.forEach(e => {
+        const proj = e.project?.trim();
+        if (proj) set.add(proj);
+      });
+    });
+    this.settings.projects = Array.from(set);
+    this.settings.migratedProjects = true;
+    void this.saveSettings();
   }
 }
 

@@ -34,6 +34,37 @@ export class TimeTrackingSettingTab extends PluginSettingTab {
         })
       );
 
+    containerEl.createEl('h3', { text: 'Projekte' });
+    const projectsContainer = containerEl.createDiv();
+    const renderProjects = () => {
+      projectsContainer.empty();
+      this.plugin.settings.projects.forEach((proj, index) => {
+        new Setting(projectsContainer)
+          .addText(text => {
+            text.setValue(proj);
+            text.onChange(value => {
+              this.plugin.settings.projects[index] = value;
+              void this.plugin.saveSettings();
+            });
+          })
+          .addButton(btn =>
+            btn.setButtonText('Entfernen').onClick(() => {
+              this.plugin.settings.projects.splice(index, 1);
+              renderProjects();
+              void this.plugin.saveSettings();
+            })
+          );
+      });
+      new Setting(projectsContainer).addButton(btn =>
+        btn.setButtonText('Projekt hinzufügen').onClick(() => {
+          this.plugin.settings.projects.push('');
+          renderProjects();
+          void this.plugin.saveSettings();
+        })
+      );
+    };
+    renderProjects();
+
     containerEl.createEl('h3', { text: 'Berichte' });
 
     let monthVal = '';

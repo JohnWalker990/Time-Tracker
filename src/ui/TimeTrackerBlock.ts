@@ -139,11 +139,14 @@ export class TimeTrackerBlock extends MarkdownRenderChild {
     hoursCell.textContent = this.calculateTime(entry.start, entry.end);
 
     const projectCell = row.insertCell(-1);
-    const projectInput = projectCell.createEl('input');
-    projectInput.type = 'text';
-    projectInput.value = entry.project;
-    projectInput.addEventListener('change', () => {
-      entry.project = projectInput.value;
+    const projectSelect = projectCell.createEl('select');
+    projectSelect.createEl('option', { value: '', text: '' });
+    this.plugin.settings.projects.forEach(p => {
+      projectSelect.createEl('option', { value: p, text: p });
+    });
+    projectSelect.value = entry.project;
+    projectSelect.addEventListener('change', () => {
+      entry.project = projectSelect.value;
       this.plugin.savePluginData();
       if (this.plugin.data.sortSettings[this.trackerId] === 'project') {
         this.renderTableRows();
